@@ -1,0 +1,76 @@
+---
+title: "Efecto de tres bioestimulantes en el rendimiento de arroz soca (oryza sativa l.) en secano favorecido en el Fundo Agricola I de la UNAS – Tingo Maria"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+# Cargar paquetes
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(emmeans)
+library(multcomp)
+```
+
+# Importar base de datos
+
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/1pjM8GMqfhJo9nVudwB1-m-Yz4_wFgYMz_o8wpjlM0f8/edit?gid=814885860#gid=814885860"
+
+gs <- url %>% 
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read("fb") %>% 
+  mutate(across(trt:bloque, as.factor))
+
+str(fb)
+```
+
+# ANOVA
+
+$$Y_{ij} = \mu + \tau_i + \beta_j + \varepsilon_{ij}$$
+# Tamaño de panoja
+
+```{r}
+md <- aov(tp ~ trt + bloque, data = fb)
+anova(md)
+
+em <- emmeans(md, "trt") %>% 
+  cld(., Letters = letters)
+
+em
+
+ggplot(em, aes(x = trt, y = emmean, fill = trt)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
+  geom_text(aes(label = .group, y = upper.CL), vjust = -0.5) +
+  labs(x = "Tratamiento", y = "Media estimada") +
+  ylim(0, 40) +
+  guides(fill = "none")
+```
+
+
+# Area foliar
+
+```{r}
+md <- aov(af ~ trt + bloque, data = fb)
+anova(md)
+
+em <- emmeans(md, "trt") %>% 
+  cld(., Letters = letters)
+
+em
+
+ggplot(em, aes(x = trt, y = emmean, fill = trt)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
+  geom_text(aes(label = .group, y = upper.CL), vjust = -0.5) +
+  labs(x = "Tratamiento", y = "Media estimada") +
+  ylim(0, 2) +
+  guides(fill = "none")
+```
+
+

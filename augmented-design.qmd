@@ -1,0 +1,40 @@
+---
+title: "diseños especiales"
+author: "Flavio Lozano-Isla"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+# Cargar las librerias
+
+```{r}
+library(tidyverse)
+library(FielDHub)
+```
+
+# Diseño aumentado
+
+```{r}
+aug_RCBD <- RCBD_augmented(
+  lines = 120,
+  checks = 4,
+  b = 6, 
+  repsExpt = 1, 
+  l = 2,
+  random = TRUE,
+  exptName = "Cassava_2022", 
+  plotNumber = c(1001, 2001),
+  locationNames = c("FARGO", "CASSELTON"),
+  nrows = 12,
+  ncols = 12,
+  seed = 1987
+)
+
+aug_RCBD
+
+fb <- aug_RCBD$fieldBook
+
+plot(aug_RCBD)
+```
+

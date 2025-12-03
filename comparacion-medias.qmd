@@ -1,0 +1,157 @@
+---
+title: "analisis de datos"
+author: "Flavio"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+# Diseño experimental
+
+$$hi = \mu + riego + genotipo + riego*genotipo + bloque + e$$
+
+# Cargar los paquetes
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(emmeans)
+library(multcomp)
+library(multcompView)
+library(knitr)
+```
+
+# Importar los datos
+
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/15r7ZwcZZHbEgltlF6gSFvCTFA-CFzVBWwg3mFlRyKPs/edit?gid=172957346#gid=172957346"
+
+gs <- url %>% 
+  as_sheets_id()
+
+
+fb <- gs %>% 
+  range_read("fb") %>% 
+    mutate(across(1:bloque, ~as.factor(.)))
+
+str(fb)
+```
+
+# Analisis para HI
+
+## ANOVA
+
+```{r}
+md <- aov(hi ~ bloque + geno*riego, data = fb)
+
+anova(md)
+```
+
+## Comparación de medias
+
+```{r}
+emm_int <- emmeans(md, ~ geno * riego)
+
+cld_int <- cld(
+  emm_int,
+  adjust = "tukey",
+  Letters = letters,
+  alpha = 0.05
+) %>%
+  as_tibble() %>%
+  mutate(
+    .group = stringr::str_trim(.group)   # limpia espacios en las letras
+  )
+
+cld_int %>% kable()
+```
+
+## grafico
+
+```{r}
+ggplot(cld_int, aes(x = geno, y = emmean, fill = riego)) +
+  geom_col(position = position_dodge(width = 0.8)) +
+  geom_errorbar(
+    aes(ymin = lower.CL, ymax = upper.CL),
+    position = position_dodge(width = 0.8),
+    width = 0.2
+  ) +
+  geom_text(
+    aes(label = .group, y = upper.CL),
+    position = position_dodge(width = 0.8),
+    vjust = -0.4,
+    size = 4
+  ) +
+  labs(
+    x = "Genotipo",
+    y = "HI (media marginal ± IC95%)",
+    fill = "Riego",
+    title = "Medias marginales (emmeans) y comparación de Tukey para la interacción geno × riego"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
+  )
+```
+
+# Analisis para LFA
+
+## ANOVA
+
+```{r}
+md <- aov(lfa ~ bloque + geno*riego, data = fb)
+
+anova(md)
+```
+
+## Comparación de medias
+
+```{r}
+emm_int <- emmeans(md, ~ geno * riego)
+
+cld_int <- cld(
+  emm_int,
+  adjust = "tukey",
+  Letters = letters,
+  alpha = 0.05
+) %>%
+  as_tibble() %>%
+  mutate(
+    .group = stringr::str_trim(.group)   # limpia espacios en las letras
+  )
+
+cld_int %>% kable()
+```
+
+## grafico
+
+```{r}
+ggplot(cld_int, aes(x = geno, y = emmean, fill = riego)) +
+  geom_col(position = position_dodge(width = 0.8)) +
+  geom_errorbar(
+    aes(ymin = lower.CL, ymax = upper.CL),
+    position = position_dodge(width = 0.8),
+    width = 0.2
+  ) +
+  geom_text(
+    aes(label = .group, y = upper.CL),
+    position = position_dodge(width = 0.8),
+    vjust = -0.4,
+    size = 4
+  ) +
+  labs(
+    x = "Genotipo",
+    y = "LFA",
+    fill = "Riego",
+    title = "Medias marginales (emmeans) y comparación de Tukey para la interacción geno × riego"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
+  )
+```
+
+
+
